@@ -1,0 +1,362 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #f0fff4, #fffaf0);
+}
+
+.app {
+  position: relative;
+  max-width: 760px;
+  margin: auto;
+  padding: 50px 20px;
+  text-align: center;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 42px;
+  color: #2e7d32;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.fruit-background {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fruit-background {
+  z-index: 0;
+}
+
+.plant-box,
+.input-box,
+ul,
+.summary {
+  position: relative;
+  z-index: 2;
+}
+
+.floating-fruit {
+  position: absolute;
+  font-size: 32px;
+  opacity: 0.45;
+  animation: float 4s ease-in-out infinite;
+}
+
+.fruit-0 {
+  top: 40px;
+  left: 30px;
+}
+
+.fruit-1 {
+  top: 120px;
+  right: 40px;
+}
+
+.fruit-2 {
+  top: 310px;
+  left: 50px;
+}
+
+.fruit-3 {
+  top: 450px;
+  right: 80px;
+}
+
+.fruit-4 {
+  top: 590px;
+  left: 120px;
+}
+
+.fruit-5 {
+  top: 650px;
+  right: 160px;
+}
+
+.fruit-6 {
+  top: 230px;
+  right: 160px;
+}
+
+.fruit-7 {
+  top: 520px;
+  left: 230px;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.plant-box {
+  position: relative;
+  background: white;
+  padding: 32px;
+  margin-top: 30px;
+  border-radius: 32px;
+  box-shadow: 0 18px 40px rgba(46, 125, 50, 0.14);
+  z-index: 1;
+}
+
+.badge {
+  display: inline-block;
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.plant-circle {
+  width: 130px;
+  height: 130px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f5e9, #fffde7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plant {
+  font-size: 58px;
+}
+
+.plant-box h2 {
+  color: #2e7d32;
+  margin: 8px 0;
+  font-size: 24px;
+}
+
+.feedback {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.input-box {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.input-box input {
+  flex: 1;
+  padding: 16px;
+  border-radius: 18px;
+  border: 2px solid #c8e6c9;
+  font-size: 15px;
+  background: white;
+}
+
+button {
+  padding: 16px 26px;
+  border: none;
+  border-radius: 18px;
+  background: #43a047;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #2e7d32;
+}
+
+ul {
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  margin-top: 20px;
+}
+
+li {
+  list-style: none;
+  background: white;
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+li input {
+  width: 18px;
+  height: 18px;
+}
+
+.done span {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.summary {
+  position: relative;
+  z-index: 1;
+  margin-top: 24px;
+  background: #e8f5e9;
+  padding: 18px;
+  border-radius: 22px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+/* 완료율 전체 영역 */
+.progress-area {
+  margin-top: 20px;
+}
+
+/* 성장률 글자 */
+.progress-text {
+  color: #2e7d32;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* Progress Bar 배경 */
+.progress-bar {
+  width: 100%;
+  height: 18px;
+  background: #e0e0e0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+/* Progress Bar 채워지는 부분 */
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #81c784, #43a047);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+/* 식물 귀여운 흔들림 애니메이션 */
+.plant {
+  font-size: 58px;
+  animation: bounce 1.8s ease-in-out infinite;
+}
+
+/* 위아래로 움직이는 효과 */
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* 식물이 시들었을 때 */
+.withered {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+/* 입력할 때 글자가 잘 보이도록 수정 */
+.input-box input {
+  color: #1f2937;
+  font-weight: bold;
+}
+
+/* placeholder 글자 색 */
+.input-box input::placeholder {
+  color: #9ca3af;
+  font-weight: normal;
+}
+
+/* 할 일 왼쪽 영역 */
+.todo-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 수정/삭제 버튼 영역 */
+.todo-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* 수정 버튼 */
+.edit-btn {
+  background: #ffb300;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* 삭제 버튼 */
+.delete-btn {
+  background: #e53935;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+/* 버튼 hover */
+.edit-btn:hover {
+  background: #fb8c00;
+}
+
+.delete-btn:hover {
+  background: #c62828;
+}
+
+/* 그래프 카드 */
+.chart-box {
+  background: white;
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+  position: relative;
+  z-index: 2;
+}
+
+/* 그래프 제목 */
+.chart-box h3 {
+  color: #2e7d32;
+  margin-bottom: 20px;
+}
+
+/* 달력 카드 */
+.calendar-box {
+  background: white;
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+  position: relative;
+  z-index: 2;
+}
+
+/* 달력 제목 */
+.calendar-box h3 {
+  color: #2e7d32;
+  margin-bottom: 20px;
+}
