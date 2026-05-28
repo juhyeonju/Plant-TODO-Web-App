@@ -2,7 +2,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "./lib/supabase";
 import "./App.css";
 
 // Chart.js import
@@ -32,6 +33,9 @@ function App() {
 
   // 할 일 목록 저장
   const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState("오늘 첫 할 일을 완료해보세요!");
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
 
   // 완료된 할 일 개수 계산
   const completedCount = todos.filter((todo) => todo.done).length;
@@ -92,60 +96,112 @@ const calendarEvents = todos
     plantStage = "열매 단계";
   }
 
-  // AI처럼 보이는 피드백 문장
-  let feedback = "오늘 첫 할 일을 완료해보세요!";
-  if (completedCount >= 1) feedback = "좋아요! 작은 실천이 성장으로 이어지고 있어요.";
-  if (completedCount >= 3) feedback = "완료 패턴이 좋습니다. 오늘 집중력이 높아 보여요!";
-  if (completedCount >= 5) feedback = "멋져요! 생산성 나무가 열매를 맺고 있어요.";
-  if (isWithered) feedback = "미완료 할 일이 많아 식물이 시들었어요. 하나씩 완료해보세요!";
-
   // 귀여운 과일 장식 목록
   const fruits = ["🍓", "🍊", "🍋", "🍇", "🍎", "🍑", "🍒", "🥝"];
 
-  // 할 일 추가 함수
-  const addTodo = () => {
-    if (text.trim() === "") return;
-
-    const newTodo = {
-      id: Date.now(),
-      text: text,
-      done: false,
-      createdAt: new Date(),
+  // 초기 데이터 로드 (Supabase)
+  useEffect(() => {
+    const fetchTodos = async () => {
+      const { data, error } = await supabase
+        .from("todos")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (!error && data) setTodos(data);
+      setLoading(false);
     };
+    fetchTodos();
+  }, []);
 
-    setTodos([...todos, newTodo]);
+  // AI 피드백 요청 (DeepSeek via /api/feedback)
+  const fetchFeedback = useCallback(async (currentTodos) => {
+    if (currentTodos.length === 0) {
+      setFeedback("오늘 첫 할 일을 완료해보세요!");
+      return;
+    }
+    const wilt = currentTodos.length - currentTodos.filter((t) => t.done).length >= 3;
+    if (wilt) {
+      setFeedback("미완료 할 일이 많아 식물이 시들었어요. 하나씩 완료해보세요!");
+      return;
+    }
+    setFeedbackLoading(true);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completedCount: currentTodos.filter((t) => t.done).length,
+          totalCount: currentTodos.length,
+          todos: currentTodos,
+        }),
+      });
+      const data = await res.json();
+      if (data.feedback) setFeedback(data.feedback);
+    } catch {
+      // 네트워크 오류 시 기존 피드백 유지
+    } finally {
+      setFeedbackLoading(false);
+    }
+  }, []);
+
+  // 할 일 추가
+  const addTodo = async () => {
+    if (text.trim() === "") return;
+    const { data, error } = await supabase
+      .from("todos")
+      .insert({ text: text.trim(), done: false })
+      .select()
+      .single();
+    if (!error && data) {
+      const updated = [...todos, data];
+      setTodos(updated);
+      fetchFeedback(updated);
+    }
     setText("");
   };
 
-  // 완료 체크 변경 함수
-  const toggleTodo = (id) => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, done: !todo.done } : todo
-      )
-    );
+  // 완료 토글
+  const toggleTodo = async (id, currentDone) => {
+    const { error } = await supabase
+      .from("todos")
+      .update({ done: !currentDone })
+      .eq("id", id);
+    if (!error) {
+      const updated = todos.map((todo) =>
+        todo.id === id ? { ...todo, done: !currentDone } : todo
+      );
+      setTodos(updated);
+      fetchFeedback(updated);
+    }
   };
 
-  // 할 일 삭제 함수
-const deleteTodo = (id) => {
-  setTodos(todos.filter((todo) => todo.id !== id));
-};
+  // 할 일 삭제
+  const deleteTodo = async (id) => {
+    const { error } = await supabase.from("todos").delete().eq("id", id);
+    if (!error) {
+      const updated = todos.filter((todo) => todo.id !== id);
+      setTodos(updated);
+      fetchFeedback(updated);
+    }
+  };
 
-// 할 일 수정 함수
-const editTodo = (id) => {
-  // 수정할 내용을 입력받기
-  const newText = prompt("새로운 할 일을 입력하세요");
+  // 할 일 수정
+  const editTodo = async (id) => {
+    const newText = prompt("새로운 할 일을 입력하세요");
+    if (!newText) return;
+    const { error } = await supabase
+      .from("todos")
+      .update({ text: newText })
+      .eq("id", id);
+    if (!error) {
+      setTodos(todos.map((todo) =>
+        todo.id === id ? { ...todo, text: newText } : todo
+      ));
+    }
+  };
 
-  // 아무것도 안 입력하면 종료
-  if (!newText) return;
-
-  // 해당 todo 내용 수정
-  setTodos(
-    todos.map((todo) =>
-      todo.id === id ? { ...todo, text: newText } : todo
-    )
-  );
-};
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") addTodo();
+  };
 
   return (
     <div className="app">
@@ -170,7 +226,9 @@ const editTodo = (id) => {
         </div>
 
         <h2>{isWithered ? "시든 상태" : plantStage}</h2>
-        <p className="feedback">{feedback}</p>
+        <p className={`feedback ${feedbackLoading ? "feedback--loading" : ""}`}>
+          {feedbackLoading ? "AI가 피드백을 작성 중..." : feedback}
+        </p>
 
         <div className="progress-area">
           <div className="progress-text">성장률 {progress}%</div>
@@ -187,11 +245,16 @@ const editTodo = (id) => {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="할 일을 입력하세요"
+          disabled={loading}
         />
-        <button onClick={addTodo}>추가</button>
+        <button onClick={addTodo} disabled={loading}>추가</button>
       </div>
 
+      {loading ? (
+        <p className="loading-text">불러오는 중...</p>
+      ) : (
       <ul>
         {todos.map((todo) => (
           <li key={todo.id} className={todo.done ? "done" : ""}>
@@ -199,7 +262,7 @@ const editTodo = (id) => {
     <input
       type="checkbox"
       checked={todo.done}
-      onChange={() => toggleTodo(todo.id)}
+      onChange={() => toggleTodo(todo.id, todo.done)}
     />
 
     <span>{todo.text}</span>
@@ -223,6 +286,7 @@ const editTodo = (id) => {
 </li>
         ))}
       </ul>
+      )}
 
       {/* 생산성 통계 그래프 */}
 <div className="chart-box">
