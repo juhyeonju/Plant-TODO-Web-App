@@ -241,6 +241,15 @@ function App() {
     ? [...PLANT_STAGES].reverse().find(s => getRegression(streak) >= s.min)
     : null;
 
+  // 데모용: localhost에서만 다음 단계로 이동
+  const isLocal = window.location.hostname === "localhost";
+  const advanceStage = async () => {
+    const next = PLANT_STAGES.find(s => s.min > streak);
+    if (!next) return;
+    await saveStats(next.min, todayStr);
+    setGarden({ streak: next.min, lastGoalDate: todayStr });
+  };
+
   return (
     <div className="app">
       <div className="fruit-background">
@@ -289,6 +298,11 @@ function App() {
             onAnimationEnd={(e) => { if (e.animationName === "grow-in") setGrown(true); }}
           />
           {streak > 0 && !isDead && <div className="streak-badge">🔥 {streak}일 연속</div>}
+          {isLocal && nextStage && (
+            <button className="demo-btn" onClick={advanceStage}>
+              다음 단계 → {nextStage && PLANT_STAGES.find(s => s.min === nextStage.min) ? "🌱" : ""}
+            </button>
+          )}
 
           {/* 죽음 → 한 단계 후퇴 버튼 */}
           {isDead && (
