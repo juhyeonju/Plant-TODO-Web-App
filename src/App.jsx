@@ -241,13 +241,23 @@ function App() {
     ? [...PLANT_STAGES].reverse().find(s => getRegression(streak) >= s.min)
     : null;
 
-  // 데모용: localhost에서만 다음 단계로 이동
+  // 데모용: localhost에서만 표시
   const isLocal = window.location.hostname === "localhost";
   const advanceStage = async () => {
     const next = PLANT_STAGES.find(s => s.min > streak);
     if (!next) return;
     await saveStats(next.min, todayStr);
     setGarden({ streak: next.min, lastGoalDate: todayStr });
+  };
+  const demoWither = async () => {
+    const witherDate = toDateStr(new Date(Date.now() - witherDays * 86400000));
+    await saveStats(streak, witherDate);
+    setGarden({ streak, lastGoalDate: witherDate });
+  };
+  const demoKill = async () => {
+    const deadDate = toDateStr(new Date(Date.now() - (witherDays + 2) * 86400000));
+    await saveStats(streak, deadDate);
+    setGarden({ streak, lastGoalDate: deadDate });
   };
 
   return (
@@ -298,10 +308,12 @@ function App() {
             onAnimationEnd={(e) => { if (e.animationName === "grow-in") setGrown(true); }}
           />
           {streak > 0 && !isDead && <div className="streak-badge">🔥 {streak}일 연속</div>}
-          {isLocal && nextStage && (
-            <button className="demo-btn" onClick={advanceStage}>
-              다음 단계 → {nextStage && PLANT_STAGES.find(s => s.min === nextStage.min) ? "🌱" : ""}
-            </button>
+          {isLocal && (
+            <div className="demo-controls">
+              {nextStage && <button className="demo-btn" onClick={advanceStage}>다음 단계 →</button>}
+              {!isDead && !isWithered && <button className="demo-btn" onClick={demoWither}>시들게 하기</button>}
+              {!isDead && <button className="demo-btn demo-btn--danger" onClick={demoKill}>죽이기</button>}
+            </div>
           )}
 
           {/* 죽음 → 한 단계 후퇴 버튼 */}

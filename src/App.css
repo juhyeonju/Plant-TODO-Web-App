@@ -322,6 +322,24 @@ h1 {
   background: #fff3cd;
 }
 
+.demo-btn--danger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+  background: #fff5f5;
+}
+
+.demo-btn--danger:hover {
+  background: var(--color-danger-bg);
+}
+
+.demo-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
 /* 죽음 액션 영역 */
 .death-actions {
   display: flex;
